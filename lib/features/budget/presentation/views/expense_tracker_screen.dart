@@ -43,7 +43,7 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                       decoration: const InputDecoration(labelText: 'Expense Name (e.g. Sushi)'),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'You have to add a name';
+                          return 'Please enter an expense name.';
                         }
                         return null;
                       },
@@ -55,10 +55,10 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'It needs to be numbers';
+                          return 'Please enter a valid amount.';
                         }
                         if (double.tryParse(value.trim()) == null) {
-                          return 'It needs to be numbers';
+                          return 'Please enter a valid amount.';
                         }
                         return null;
                       },

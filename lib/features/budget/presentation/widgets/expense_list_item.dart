@@ -78,7 +78,7 @@ class ExpenseListItem extends StatelessWidget {
                       decoration: const InputDecoration(labelText: 'Expense Name'),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'You have to add a name';
+                          return 'Please enter an expense name.';
                         }
                         return null;
                       },
@@ -90,10 +90,10 @@ class ExpenseListItem extends StatelessWidget {
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'It needs to be numbers';
+                          return 'Please enter a valid amount.';
                         }
                         if (double.tryParse(value.trim()) == null) {
-                          return 'It needs to be numbers';
+                          return 'Please enter a valid amount.';
                         }
                         return null;
                       },
