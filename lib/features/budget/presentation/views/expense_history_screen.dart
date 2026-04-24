@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/expense_providers.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/expense_cubit.dart';
+import '../cubit/expense_state.dart';
 import '../widgets/expense_list_item.dart';
 
-class ExpenseHistoryScreen extends ConsumerWidget {
+class ExpenseHistoryScreen extends StatelessWidget {
   const ExpenseHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final expenses = ref.watch(expensesProvider);
-
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense History', style: TextStyle(color: Colors.white)),
@@ -18,8 +17,11 @@ class ExpenseHistoryScreen extends ConsumerWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: expenses.isEmpty
-          ? Center(
+      body: BlocBuilder<ExpenseCubit, ExpenseState>(
+        builder: (context, state) {
+          final expenses = state.expenses;
+          if (expenses.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -28,17 +30,19 @@ class ExpenseHistoryScreen extends ConsumerWidget {
                   Text('No expenses found.', style: TextStyle(color: Colors.grey.shade600)),
                 ],
               ),
-            )
-          : (() {
-              final sortedExpenses = List.of(expenses)..sort((a, b) => b.date.compareTo(a.date));
-              return ListView.builder(
-                padding: const EdgeInsets.all(20),
-                itemCount: sortedExpenses.length,
-                itemBuilder: (context, index) {
-                  return ExpenseListItem(expense: sortedExpenses[index]);
-                },
-              );
-            })(),
+            );
+          }
+
+          final sortedExpenses = List.of(expenses)..sort((a, b) => b.date.compareTo(a.date));
+          return ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: sortedExpenses.length,
+            itemBuilder: (context, index) {
+              return ExpenseListItem(expense: sortedExpenses[index]);
+            },
+          );
+        },
+      ),
     );
   }
 }
