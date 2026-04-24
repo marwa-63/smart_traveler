@@ -16,10 +16,15 @@ class ExpenseTrackerScreen extends StatefulWidget {
 
 class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
   Future<void> _showAddExpenseDialog([String? initialCategory]) async {
+    final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
     final amountController = TextEditingController();
-    String selectedCategory = initialCategory ?? 'Food';
-    final categories = ['Food', 'Transport', 'Activities', 'Stay'];
+    
+    // If initialCategory is passed (clicked from card), we lock it.
+    // Otherwise (clicked from FAB), we show the dropdown and default to 'Others'.
+    final isCategoryLocked = initialCategory != null;
+    String selectedCategory = initialCategory ?? 'Others';
+    final categories = ['Food', 'Transport', 'Activities', 'Stay', 'Others'];
 
     await showDialog(
       context: context,
@@ -27,39 +32,59 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Add Expense'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(labelText: 'Expense Name (e.g. Sushi)'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: amountController,
-                    decoration: const InputDecoration(labelText: 'Amount (\$)'),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedCategory,
-                    decoration: const InputDecoration(labelText: 'Category'),
-                    items: categories.map((cat) {
-                      return DropdownMenuItem(
-                        value: cat,
-                        child: Text(cat),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          selectedCategory = val;
-                        });
-                      }
-                    },
-                  ),
-                ],
+              title: Text(isCategoryLocked ? 'Add $initialCategory Expense' : 'Add Expense'),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: titleController,
+                      decoration: const InputDecoration(labelText: 'Expense Name (e.g. Sushi)'),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter an expense name.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: amountController,
+                      decoration: const InputDecoration(labelText: 'Amount (\$)'),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter a valid amount.';
+                        }
+                        if (double.tryParse(value.trim()) == null) {
+                          return 'Please enter a valid amount.';
+                        }
+                        return null;
+                      },
+                    ),
+                    if (!isCategoryLocked) ...[
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: selectedCategory,
+                        decoration: const InputDecoration(labelText: 'Category'),
+                        items: categories.map((cat) {
+                          return DropdownMenuItem(
+                            value: cat,
+                            child: Text(cat),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              selectedCategory = val;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -68,9 +93,10 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    final amount = double.tryParse(amountController.text.trim());
-                    final title = titleController.text.trim();
-                    if (amount != null && title.isNotEmpty) {
+                    if (formKey.currentState!.validate()) {
+                      final amount = double.parse(amountController.text.trim());
+                      final title = titleController.text.trim();
+                      
                       // Note: Use context from the main screen for Cubit
                       context.read<ExpenseCubit>().addExpense(
                         title: title,
@@ -92,6 +118,7 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
   }
 
   Future<void> _showAddBudgetDialog() async {
+    final formKey = GlobalKey<FormState>();
     final budgetController = TextEditingController();
     final currentBudget = context.read<ExpenseCubit>().state.totalBudget;
     if (currentBudget > 0) {
@@ -103,10 +130,22 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Set Total Budget'),
-          content: TextField(
-            controller: budgetController,
-            decoration: const InputDecoration(labelText: 'Total Budget (\$)'),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: budgetController,
+              decoration: const InputDecoration(labelText: 'Total Budget (\$)'),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter a valid amount.';
+                }
+                if (double.tryParse(value.trim()) == null) {
+                  return 'Please enter a valid amount.';
+                }
+                return null;
+              },
+            ),
           ),
           actions: [
             TextButton(
@@ -115,10 +154,12 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                final budget = double.tryParse(budgetController.text.trim());
-                if (budget != null && budget > 0) {
-                  context.read<ExpenseCubit>().updateBudget(budget);
-                  Navigator.pop(dialogContext);
+                if (formKey.currentState!.validate()) {
+                  final budget = double.parse(budgetController.text.trim());
+                  if (budget > 0) {
+                    context.read<ExpenseCubit>().updateBudget(budget);
+                    Navigator.pop(dialogContext);
+                  }
                 }
               },
               child: const Text('Save'),

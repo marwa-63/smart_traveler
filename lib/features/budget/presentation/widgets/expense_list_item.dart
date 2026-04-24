@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/expense.dart';
+import '../cubit/expense_cubit.dart';
 
 class ExpenseListItem extends StatelessWidget {
   final Expense expense;
@@ -50,6 +52,128 @@ class ExpenseListItem extends StatelessWidget {
       default:
         return Colors.grey;
     }
+  }
+
+  Future<void> _showEditExpenseDialog(BuildContext context) async {
+    final formKey = GlobalKey<FormState>();
+    final titleController = TextEditingController(text: expense.title);
+    final amountController = TextEditingController(text: expense.amount.toString());
+    String selectedCategory = expense.category;
+    final categories = ['Food', 'Transport', 'Activities', 'Stay', 'Others'];
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit Expense'),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: titleController,
+                      decoration: const InputDecoration(labelText: 'Expense Name'),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter an expense name.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: amountController,
+                      decoration: const InputDecoration(labelText: 'Amount (\$)'),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter a valid amount.';
+                        }
+                        if (double.tryParse(value.trim()) == null) {
+                          return 'Please enter a valid amount.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: categories.contains(selectedCategory) ? selectedCategory : 'Others',
+                      decoration: const InputDecoration(labelText: 'Category'),
+                      items: categories.map((cat) {
+                        return DropdownMenuItem(
+                          value: cat,
+                          child: Text(cat),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            selectedCategory = val;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      final amount = double.parse(amountController.text.trim());
+                      final title = titleController.text.trim();
+                      
+                      final updatedExpense = Expense(
+                        id: expense.id,
+                        title: title,
+                        amount: amount,
+                        category: selectedCategory,
+                        date: expense.date,
+                      );
+                      
+                      context.read<ExpenseCubit>().editExpense(updatedExpense);
+                      Navigator.pop(dialogContext);
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Expense'),
+        content: const Text('Are you sure you want to delete this expense?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<ExpenseCubit>().deleteExpense(expense.id);
+              Navigator.pop(ctx);
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -111,6 +235,38 @@ class ExpenseListItem extends StatelessWidget {
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.grey),
+            onSelected: (value) {
+              if (value == 'edit') {
+                _showEditExpenseDialog(context);
+              } else if (value == 'delete') {
+                _showDeleteConfirmation(context);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    Icon(Icons.edit, size: 20),
+                    SizedBox(width: 8),
+                    Text('Edit'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, size: 20, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Delete', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
