@@ -55,6 +55,12 @@ class CategorySection extends StatelessWidget {
               icon: Icons.hotel_rounded,
               color: Colors.teal,
             ),
+            _buildCategoryCard(
+              context: context,
+              name: 'Others',
+              icon: Icons.receipt_rounded,
+              color: Colors.blueGrey,
+            ),
           ],
         ),
       ],

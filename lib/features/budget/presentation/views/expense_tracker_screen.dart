@@ -16,10 +16,15 @@ class ExpenseTrackerScreen extends StatefulWidget {
 
 class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
   Future<void> _showAddExpenseDialog([String? initialCategory]) async {
+    final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
     final amountController = TextEditingController();
-    String selectedCategory = initialCategory ?? 'Food';
-    final categories = ['Food', 'Transport', 'Activities', 'Stay'];
+    
+    // If initialCategory is passed (clicked from card), we lock it.
+    // Otherwise (clicked from FAB), we show the dropdown and default to 'Others'.
+    final isCategoryLocked = initialCategory != null;
+    String selectedCategory = initialCategory ?? 'Others';
+    final categories = ['Food', 'Transport', 'Activities', 'Stay', 'Others'];
 
     await showDialog(
       context: context,
@@ -27,39 +32,59 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Add Expense'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(labelText: 'Expense Name (e.g. Sushi)'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: amountController,
-                    decoration: const InputDecoration(labelText: 'Amount (\$)'),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedCategory,
-                    decoration: const InputDecoration(labelText: 'Category'),
-                    items: categories.map((cat) {
-                      return DropdownMenuItem(
-                        value: cat,
-                        child: Text(cat),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          selectedCategory = val;
-                        });
-                      }
-                    },
-                  ),
-                ],
+              title: Text(isCategoryLocked ? 'Add $initialCategory Expense' : 'Add Expense'),
+              content: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: titleController,
+                      decoration: const InputDecoration(labelText: 'Expense Name (e.g. Sushi)'),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'You have to add a name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: amountController,
+                      decoration: const InputDecoration(labelText: 'Amount (\$)'),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'It needs to be numbers';
+                        }
+                        if (double.tryParse(value.trim()) == null) {
+                          return 'It needs to be numbers';
+                        }
+                        return null;
+                      },
+                    ),
+                    if (!isCategoryLocked) ...[
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: selectedCategory,
+                        decoration: const InputDecoration(labelText: 'Category'),
+                        items: categories.map((cat) {
+                          return DropdownMenuItem(
+                            value: cat,
+                            child: Text(cat),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              selectedCategory = val;
+                            });
+                          }
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -68,9 +93,10 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    final amount = double.tryParse(amountController.text.trim());
-                    final title = titleController.text.trim();
-                    if (amount != null && title.isNotEmpty) {
+                    if (formKey.currentState!.validate()) {
+                      final amount = double.parse(amountController.text.trim());
+                      final title = titleController.text.trim();
+                      
                       // Note: Use context from the main screen for Cubit
                       context.read<ExpenseCubit>().addExpense(
                         title: title,
@@ -158,6 +184,42 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
           ],
         ),
         actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.restart_alt, size: 18),
+              label: const Text('Reset'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Reset Data'),
+                    content: const Text('Are you sure you want to reset all your budget data and expenses? This cannot be undone.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          context.read<ExpenseCubit>().resetData();
+                          Navigator.pop(ctx);
+                        },
+                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        child: const Text('Reset'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Colors.white),
             onPressed: () {},

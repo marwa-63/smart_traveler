@@ -30,4 +30,20 @@ class ExpenseCubit extends Cubit<ExpenseState> {
       totalBudget: newBudget,
     ));
   }
+
+  void deleteExpense(String id) {
+    emit(state.copyWith(
+      expenses: state.expenses.where((e) => e.id != id).toList(),
+    ));
+  }
+
+  void editExpense(Expense updatedExpense) {
+    emit(state.copyWith(
+      expenses: state.expenses.map((e) => e.id == updatedExpense.id ? updatedExpense : e).toList(),
+    ));
+  }
+
+  void resetData() {
+    emit(ExpenseState.initial());
+  }
 }
