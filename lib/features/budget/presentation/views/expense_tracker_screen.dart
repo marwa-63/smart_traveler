@@ -118,6 +118,7 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
   }
 
   Future<void> _showAddBudgetDialog() async {
+    final formKey = GlobalKey<FormState>();
     final budgetController = TextEditingController();
     final currentBudget = context.read<ExpenseCubit>().state.totalBudget;
     if (currentBudget > 0) {
@@ -129,10 +130,22 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Set Total Budget'),
-          content: TextField(
-            controller: budgetController,
-            decoration: const InputDecoration(labelText: 'Total Budget (\$)'),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: budgetController,
+              decoration: const InputDecoration(labelText: 'Total Budget (\$)'),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter a valid amount.';
+                }
+                if (double.tryParse(value.trim()) == null) {
+                  return 'Please enter a valid amount.';
+                }
+                return null;
+              },
+            ),
           ),
           actions: [
             TextButton(
@@ -141,10 +154,12 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                final budget = double.tryParse(budgetController.text.trim());
-                if (budget != null && budget > 0) {
-                  context.read<ExpenseCubit>().updateBudget(budget);
-                  Navigator.pop(dialogContext);
+                if (formKey.currentState!.validate()) {
+                  final budget = double.parse(budgetController.text.trim());
+                  if (budget > 0) {
+                    context.read<ExpenseCubit>().updateBudget(budget);
+                    Navigator.pop(dialogContext);
+                  }
                 }
               },
               child: const Text('Save'),
@@ -184,42 +199,6 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
           ],
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.restart_alt, size: 18),
-              label: const Text('Reset'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                textStyle: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: const Text('Reset Data'),
-                    content: const Text('Are you sure you want to reset all your budget data and expenses? This cannot be undone.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          context.read<ExpenseCubit>().resetData();
-                          Navigator.pop(ctx);
-                        },
-                        style: TextButton.styleFrom(foregroundColor: Colors.red),
-                        child: const Text('Reset'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined, color: Colors.white),
             onPressed: () {},

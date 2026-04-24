@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/expense.dart';
+import '../cubit/expense_cubit.dart';
 import 'expense_list_item.dart';
 
 class RecentExpensesList extends StatelessWidget {
@@ -29,14 +31,56 @@ class RecentExpensesList extends StatelessWidget {
               'Recent Expenses',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            if (expenses.isNotEmpty)
-              Text(
-                '${expenses.length} Total',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('Reset Data'),
+                        content: const Text('Are you sure you want to reset all your budget data and expenses? This cannot be undone.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              context.read<ExpenseCubit>().resetData();
+                              Navigator.pop(ctx);
+                            },
+                            style: TextButton.styleFrom(foregroundColor: Colors.red),
+                            child: const Text('Reset'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.restart_alt, size: 16),
+                  label: const Text('Reset', style: TextStyle(fontSize: 14)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                    minimumSize: const Size(0, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    elevation: 0,
+                  ),
                 ),
-              ),
+                if (expenses.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    '${expenses.length} Total',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 16),
