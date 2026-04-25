@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_traveler/constants/app_theme.dart';
+import 'package:smart_traveler/features/Home/presentation/screens/Home%20DashboardScreen.dart';
 import 'features/budget/presentation/views/expense_tracker_screen.dart';
 import 'features/budget/presentation/cubit/expense_cubit.dart';
 
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Smart Traveler',
         theme: AppTheme.lightTheme,
-        home: const ExpenseTrackerScreen(),
+        home: const HomeScreen(),
       ),
     );
   }
