@@ -6,6 +6,7 @@ import 'package:smart_traveler/features/generate%20trip/presentation/views/trip_
 import 'package:smart_traveler/features/planner/presentation/cubit/planner_cubit.dart';
 import 'package:smart_traveler/features/planner/presentation/views/planner_screen.dart';
 import 'package:smart_traveler/firebase_options.dart';
+import 'package:smart_traveler/features/Home/presentation/screens/Home%20DashboardScreen.dart';
 import 'features/budget/presentation/views/expense_tracker_screen.dart';
 import 'features/budget/presentation/cubit/expense_cubit.dart';
 
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Smart Traveler',
         theme: AppTheme.lightTheme,
-        home:const PlannerScreen()
+        home: const HomeScreen(),
       ),
     );
   }
