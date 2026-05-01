@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1027509621082",
+    "project_id": "smarttraveler-58384",
+    "storage_bucket": "smarttraveler-58384.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1027509621082:android:ec95317e25293b87246363",
+        "android_client_info": {
+          "package_name": "com.example.smart_traveler"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDb9UfMetoE63zrOdpZQuUZldTnnxeHk9A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
