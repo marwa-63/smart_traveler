@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../budget/presentation/views/expense_tracker_screen.dart';
 
 class QuickActions extends StatefulWidget {
   const QuickActions({super.key});
@@ -53,6 +54,12 @@ class _QuickActionsState extends State<QuickActions> {
             setState(() {
               selectedIndex = index;
             });
+            if (item["title"] == "Budget") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ExpenseTrackerScreen()),
+              );
+            }
           },
           child: ActionCard(
             title: item["title"],
