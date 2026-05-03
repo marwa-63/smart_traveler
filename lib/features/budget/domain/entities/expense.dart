@@ -1,5 +1,6 @@
 class Expense {
   final String id;
+  final String tripId; // Added tripId
   final String title;
   final double amount;
   final String category;
@@ -7,6 +8,7 @@ class Expense {
 
   const Expense({
     required this.id,
+    required this.tripId,
     required this.title,
     required this.amount,
     required this.category,
@@ -15,6 +17,7 @@ class Expense {
 
   Expense copyWith({
     String? id,
+    String? tripId,
     String? title,
     double? amount,
     String? category,
@@ -22,6 +25,7 @@ class Expense {
   }) {
     return Expense(
       id: id ?? this.id,
+      tripId: tripId ?? this.tripId,
       title: title ?? this.title,
       amount: amount ?? this.amount,
       category: category ?? this.category,
@@ -32,6 +36,7 @@ class Expense {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'tripId': tripId,
       'title': title,
       'amount': amount,
       'category': category,
@@ -42,6 +47,7 @@ class Expense {
   factory Expense.fromMap(Map<String, dynamic> map) {
     return Expense(
       id: map['id'],
+      tripId: map['tripId'] ?? 'unknown', // Fallback for old data if any
       title: map['title'],
       amount: map['amount'],
       category: map['category'],

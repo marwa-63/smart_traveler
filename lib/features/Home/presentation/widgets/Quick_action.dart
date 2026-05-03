@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../budget/presentation/views/expense_tracker_screen.dart';
+import 'package:smart_traveler/core/database/database_helper.dart';
+import 'package:smart_traveler/features/Home/domain/entities/trip.dart';
+import 'package:smart_traveler/features/budget/presentation/views/expense_tracker_screen.dart';
+import 'package:smart_traveler/features/Home/presentation/screens/ai_planner_screen.dart';
+import 'package:smart_traveler/features/Home/presentation/screens/saved_trips_screen.dart';
 
 class QuickActions extends StatefulWidget {
   const QuickActions({super.key});
@@ -16,21 +20,25 @@ class _QuickActionsState extends State<QuickActions> {
       "title": "Plan Trip",
       "subtitle": "AI-powered itineraries",
       "icon": Icons.auto_awesome,
+      "color": Colors.blue,
     },
     {
       "title": "Budget",
       "subtitle": "Track every penny",
-      "icon": Icons.access_time,
+      "icon": Icons.account_balance_wallet_rounded,
+      "color": Colors.green,
     },
     {
       "title": "Explore Map",
       "subtitle": "Nearby attractions",
-      "icon": Icons.location_on,
+      "icon": Icons.map_rounded,
+      "color": Colors.orange,
     },
     {
       "title": "Saved Trips",
       "subtitle": "Your past adventures",
-      "icon": Icons.bookmark_border,
+      "icon": Icons.history_rounded,
+      "color": Colors.purple,
     },
   ];
 
@@ -57,7 +65,22 @@ class _QuickActionsState extends State<QuickActions> {
             if (item["title"] == "Budget") {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ExpenseTrackerScreen()),
+                MaterialPageRoute(builder: (_) => ExpenseTrackerScreen()),
+              );
+            } else if (item["title"] == "Plan Trip") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AiPlannerScreen()),
+              );
+            } else if (item["title"] == "Explore Map") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => _MapPlaceholderScreen()),
+              );
+            } else if (item["title"] == "Saved Trips") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SavedTripsScreen()),
               );
             }
           },
@@ -65,6 +88,7 @@ class _QuickActionsState extends State<QuickActions> {
             title: item["title"],
             subtitle: item["subtitle"],
             icon: item["icon"],
+            color: item["color"],
             isHighlighted: selectedIndex == index,
           ),
         );
@@ -73,10 +97,32 @@ class _QuickActionsState extends State<QuickActions> {
   }
 }
 
+class _MapPlaceholderScreen extends StatelessWidget {
+  const _MapPlaceholderScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Explore Map")),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.map, size: 80, color: Colors.blue.shade200),
+            const SizedBox(height: 16),
+            const Text("Map Integration Coming Soon", style: TextStyle(fontSize: 20)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+  final Color color;
   final bool isHighlighted;
 
   const ActionCard({
@@ -84,6 +130,7 @@ class ActionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
+    required this.color,
     this.isHighlighted = false,
   });
 
@@ -93,27 +140,48 @@ class ActionCard extends StatelessWidget {
       duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isHighlighted ? const Color(0xffCFE8D5) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isHighlighted ? color.withOpacity(0.5) : Colors.transparent,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
-              shape: BoxShape.circle,
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, size: 20),
+            child: Icon(icon, size: 24, color: color),
           ),
           const Spacer(),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 2),
           Text(
             subtitle,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            style: TextStyle(
+              color: Colors.grey.shade500,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

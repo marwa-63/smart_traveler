@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/expense_cubit.dart';
 import '../cubit/expense_state.dart';
+import '../../../../features/Home/presentation/cubit/trip_cubit.dart';
 import '../widgets/budget_summary_card.dart';
 import '../widgets/category_section.dart';
 import '../widgets/recent_expenses_list.dart';
@@ -93,12 +94,20 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
+                    final activeTrip = context.read<TripCubit>().state.activeTrip;
+                    if (activeTrip == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please select an active trip first')),
+                      );
+                      return;
+                    }
+
                     if (formKey.currentState!.validate()) {
                       final amount = double.parse(amountController.text.trim());
                       final title = titleController.text.trim();
                       
-                      // Note: Use context from the main screen for Cubit
                       context.read<ExpenseCubit>().addExpense(
+                        tripId: activeTrip.id,
                         title: title,
                         amount: amount,
                         category: selectedCategory,
@@ -172,80 +181,105 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.canPop(context);
     return Scaffold(
+      backgroundColor: const Color(0xffF4F6F8),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0066EE), // Solid blue to match original
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: canPop ? IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ) : null,
+        title: const Text("Budget Tracker", style: TextStyle(color: Colors.black87)),
         centerTitle: true,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/logo.png',
-              height: 32,
-              errorBuilder: (context, error, stackTrace) {
-                // Fallback icon until the user adds the logo.png to assets
-                return const Icon(Icons.mode_of_travel, color: Colors.white, size: 28);
-              },
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Budget Tracker', 
-              style: TextStyle(
-                color: Colors.white, 
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-            onPressed: () {},
-          )
-        ],
       ),
-      body: BlocBuilder<ExpenseCubit, ExpenseState>(
-        builder: (context, state) {
-          final expenses = state.expenses;
-          final totalBudget = state.totalBudget;
-          final totalSpent = state.totalSpent;
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: BlocBuilder<ExpenseCubit, ExpenseState>(
+            builder: (context, state) {
+              final activeTrip = context.watch<TripCubit>().state.activeTrip;
+              
+              if (activeTrip == null) {
+                return const Center(
+                  child: Text("No active trip selected.\nGo to Saved Trips to make one active.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 16)),
+                );
+              }
 
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BudgetSummaryCard(
-                      totalBudget: totalBudget,
-                      totalSpent: totalSpent,
-                      onAddBudget: _showAddBudgetDialog,
+              final expenses = state.expenses;
+              final totalBudget = state.totalBudget;
+              final totalSpent = state.totalSpent;
+
+              return Column(
+                children: [
+                  AppBar(
+                    backgroundColor: const Color(0xFF0066EE),
+                    centerTitle: true,
+                    title: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/logo.png',
+                          height: 32,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.mode_of_travel, color: Colors.white, size: 28);
+                          },
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Budget Tracker', 
+                          style: TextStyle(
+                            color: Colors.white, 
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 32),
-                    CategorySection(
-                      expenses: expenses,
-                      onAddExpense: (category) => _showAddExpenseDialog(category),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                        onPressed: () {},
+                      )
+                    ],
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          BudgetSummaryCard(
+                            totalBudget: totalBudget,
+                            totalSpent: totalSpent,
+                            onAddBudget: _showAddBudgetDialog,
+                          ),
+                          const SizedBox(height: 32),
+                          CategorySection(
+                            expenses: expenses,
+                            onAddExpense: (category) => _showAddExpenseDialog(category),
+                          ),
+                          const SizedBox(height: 32),
+                          RecentExpensesList(
+                            expenses: expenses,
+                            onViewHistory: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const ExpenseHistoryScreen()),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 80),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 32),
-                    RecentExpensesList(
-                      expenses: expenses,
-                      onViewHistory: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ExpenseHistoryScreen()),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 80), // Padding for FAB
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddExpenseDialog(),

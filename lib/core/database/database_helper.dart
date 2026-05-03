@@ -22,9 +22,26 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('DROP TABLE IF EXISTS expenses');
+      await db.execute('''
+        CREATE TABLE expenses (
+          id TEXT PRIMARY KEY,
+          tripId TEXT NOT NULL,
+          title TEXT NOT NULL,
+          amount REAL NOT NULL,
+          category TEXT NOT NULL,
+          date TEXT NOT NULL
+        )
+      ''');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -58,12 +75,40 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE expenses (
         id $idType,
+        tripId $textType,
         title $textType,
         amount $realType,
         category $textType,
         date $textType
       )
     ''');
+
+    await db.execute('''
+      CREATE TABLE settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+      )
+    ''');
+  }
+
+  // Settings / Budget Methods
+  Future<void> setTotalBudget(double amount) async {
+    final db = await database;
+    await db.insert('settings', {'key': 'total_budget', 'value': amount.toString()},
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<double?> getTotalBudget() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'settings',
+      where: 'key = ?',
+      whereArgs: ['total_budget'],
+    );
+    if (maps.isNotEmpty) {
+      return double.tryParse(maps.first['value'] as String);
+    }
+    return null;
   }
 
   // --- Trip Methods ---
@@ -76,6 +121,30 @@ class DatabaseHelper {
     final db = await instance.database;
     final result = await db.query('trips');
     return result.map((json) => Trip.fromMap(json)).toList();
+  }
+
+  Future<void> updateTrip(Trip trip) async {
+    final db = await database;
+    await db.update(
+      'trips',
+      trip.toMap(),
+      where: 'id = ?',
+      whereArgs: [trip.id],
+    );
+  }
+
+  Future<void> deleteTrip(String id) async {
+    final db = await database;
+    await db.delete('trips', where: 'id = ?', whereArgs: [id]);
+    await db.delete('itinerary_items', where: 'tripId = ?', whereArgs: [id]);
+    await db.delete('expenses', where: 'tripId = ?', whereArgs: [id]);
+  }
+
+  Future<void> deleteAllTrips() async {
+    final db = await database;
+    await db.delete('trips');
+    await db.delete('itinerary_items');
+    await db.delete('expenses');
   }
 
   // --- Itinerary Item Methods ---
@@ -101,9 +170,14 @@ class DatabaseHelper {
     await db.insert('expenses', expense.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<Expense>> getAllExpenses() async {
+  Future<List<Expense>> getExpensesForTrip(String tripId) async {
     final db = await instance.database;
-    final result = await db.query('expenses', orderBy: 'date DESC');
+    final result = await db.query(
+      'expenses', 
+      where: 'tripId = ?',
+      whereArgs: [tripId],
+      orderBy: 'date DESC'
+    );
     return result.map((json) => Expense.fromMap(json)).toList();
   }
 

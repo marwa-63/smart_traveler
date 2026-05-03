@@ -132,6 +132,7 @@ class ExpenseListItem extends StatelessWidget {
                       
                       final updatedExpense = Expense(
                         id: expense.id,
+                        tripId: expense.tripId,
                         title: title,
                         amount: amount,
                         category: selectedCategory,

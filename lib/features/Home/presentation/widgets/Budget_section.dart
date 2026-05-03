@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../budget/presentation/cubit/expense_cubit.dart';
-import '../../../budget/presentation/cubit/expense_state.dart';
-import '../../../budget/presentation/views/expense_tracker_screen.dart';
+import 'package:smart_traveler/features/budget/presentation/cubit/expense_cubit.dart';
+import 'package:smart_traveler/features/budget/presentation/cubit/expense_state.dart';
+import 'package:smart_traveler/features/budget/presentation/views/expense_tracker_screen.dart';
 
 class BudgetSection extends StatelessWidget {
   const BudgetSection({super.key});
@@ -32,7 +32,7 @@ class BudgetSection extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const ExpenseTrackerScreen()),
+                      MaterialPageRoute(builder: (_) => ExpenseTrackerScreen()),
                     );
                   },
                   child: const Text(
@@ -50,7 +50,7 @@ class BudgetSection extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ExpenseTrackerScreen()),
+                  MaterialPageRoute(builder: (_) => ExpenseTrackerScreen()),
                 );
               },
               child: Container(
