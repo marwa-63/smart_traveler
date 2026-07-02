@@ -7,7 +7,7 @@ import 'package:smart_traveler/features/Home/presentation/widgets/recent_activit
 import 'package:smart_traveler/features/Home/presentation/widgets/trip_card.dart';
 
 import 'package:smart_traveler/features/budget/presentation/views/expense_tracker_screen.dart';
-import 'package:smart_traveler/features/Home/presentation/screens/ai_planner_screen.dart';
+import 'package:smart_traveler/features/planner/presentation/views/planner_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const _HomeContent(),
-    const AiPlannerScreen(),
+    const PlannerScreen(),
     const Center(child: Text("Map Screen Placeholder", style: TextStyle(fontSize: 20))),
     const ExpenseTrackerScreen(),
     const Center(child: Text("Profile Screen Placeholder", style: TextStyle(fontSize: 20))),
