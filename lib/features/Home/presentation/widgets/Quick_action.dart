@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:smart_traveler/core/database/database_helper.dart';
 import 'package:smart_traveler/features/Home/domain/entities/trip.dart';
 import 'package:smart_traveler/features/budget/presentation/views/expense_tracker_screen.dart';
-import 'package:smart_traveler/features/Home/presentation/screens/ai_planner_screen.dart';
-import 'package:smart_traveler/features/Home/presentation/screens/saved_trips_screen.dart';
+ import 'package:smart_traveler/features/Home/presentation/screens/saved_trips_screen.dart';
+import 'package:smart_traveler/features/planner/presentation/views/planner_screen.dart';
 
 class QuickActions extends StatefulWidget {
   const QuickActions({super.key});
@@ -70,7 +70,7 @@ class _QuickActionsState extends State<QuickActions> {
             } else if (item["title"] == "Plan Trip") {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => AiPlannerScreen()),
+                MaterialPageRoute(builder: (_) => PlannerScreen()),
               );
             } else if (item["title"] == "Explore Map") {
               Navigator.push(
