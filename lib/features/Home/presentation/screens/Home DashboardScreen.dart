@@ -8,6 +8,7 @@ import 'package:smart_traveler/features/Home/presentation/widgets/trip_card.dart
 
 import 'package:smart_traveler/features/budget/presentation/views/expense_tracker_screen.dart';
 import 'package:smart_traveler/features/planner/presentation/views/planner_screen.dart';
+import 'package:smart_traveler/features/Home/presentation/screens/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const PlannerScreen(),
     const Center(child: Text("Map Screen Placeholder", style: TextStyle(fontSize: 20))),
     const ExpenseTrackerScreen(),
-    const Center(child: Text("Profile Screen Placeholder", style: TextStyle(fontSize: 20))),
+    const ProfileScreen(),
   ];
 
   @override

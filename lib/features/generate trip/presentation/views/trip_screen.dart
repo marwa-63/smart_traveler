@@ -4,6 +4,13 @@ import 'package:smart_traveler/constants/app_theme.dart';
 import 'package:smart_traveler/features/generate%20trip/presentation/widgets/days_list_widget.dart';
 import 'package:smart_traveler/features/generate%20trip/presentation/widgets/day_summary_widget.dart';
 import 'package:smart_traveler/features/generate%20trip/presentation/widgets/timeline_item_widget.dart';
+import 'package:uuid/uuid.dart';
+import 'package:smart_traveler/core/database/database_helper.dart';
+import 'package:smart_traveler/features/Home/domain/entities/trip.dart';
+import 'package:smart_traveler/features/Home/domain/entities/itinerary_item.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_traveler/features/Home/presentation/cubit/trip_cubit.dart';
+import 'package:smart_traveler/features/Home/presentation/screens/Home DashboardScreen.dart';
 
 class TripScreen extends StatefulWidget {
   final dynamic response;
@@ -133,8 +140,45 @@ class _TripScreenState extends State<TripScreen> {
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: ElevatedButton(
-            onPressed: () {
-              // TODO: Implement save trip logic
+            onPressed: () async {
+              final tripId = const Uuid().v4();
+              final newTrip = Trip(
+                id: tripId,
+                destination: trip.tripTitle,
+                totalBudget: trip.totalEstimatedCost,
+                startDate: trip.beginDate ?? DateTime.now(),
+                endDate: trip.endDate ?? DateTime.now().add(Duration(days: trip.itinerary.length)),
+              );
+
+              // Save trip
+              await DatabaseHelper.instance.insertTrip(newTrip);
+
+              // Save itinerary items
+              for (var day in trip.itinerary) {
+                for (var activity in day.activities) {
+                  final item = ItineraryItem(
+                    id: const Uuid().v4(),
+                    tripId: tripId,
+                    dayNumber: day.day,
+                    location: activity.searchableLocationName,
+                    time: activity.time,
+                    estimatedCharge: activity.estimatedCost.toDouble(),
+                    description: '${activity.activityName}\n${activity.description}',
+                  );
+                  await DatabaseHelper.instance.insertItineraryItem(item);
+                }
+              }
+
+              // Set active trip
+              if (context.mounted) {
+                await context.read<TripCubit>().setActiveTrip(newTrip);
+                
+                // Navigate to home screen
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  (route) => false,
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,

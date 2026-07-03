@@ -106,6 +106,9 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                       final amount = double.parse(amountController.text.trim());
                       final title = titleController.text.trim();
                       
+                      final currentBudget = context.read<ExpenseCubit>().state.totalBudget;
+                      final currentSpent = context.read<ExpenseCubit>().state.totalSpent;
+
                       context.read<ExpenseCubit>().addExpense(
                         tripId: activeTrip.id,
                         title: title,
@@ -114,6 +117,16 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                         date: DateTime.now(),
                       );
                       Navigator.pop(dialogContext);
+
+                      if (currentBudget > 0 && (currentSpent + amount) > currentBudget) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Warning: This expense exceeds your total trip budget!'),
+                            backgroundColor: Colors.red,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
                     }
                   },
                   child: const Text('Save'),
@@ -244,6 +257,24 @@ class _ExpenseTrackerScreenState extends State<ExpenseTrackerScreen> {
                       )
                     ],
                   ),
+                  if (totalBudget > 0 && totalSpent > totalBudget)
+                    Container(
+                      color: Colors.red.shade100,
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Warning: You have exceeded your budget by \$${(totalSpent - totalBudget).toStringAsFixed(2)}!',
+                              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
