@@ -48,6 +48,7 @@ dependencies:
   firebase_ai: ^3.11.0
   timeline_tile: ^2.0.0
   cached_network_image: ^3.4.1
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:

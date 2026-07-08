@@ -12,7 +12,20 @@
           "package_name": "com.example.smart_traveler"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1027509621082-kkq9889c2gbdebkgkfdebibp5ptssiut.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.smart_traveler",
+            "certificate_hash": "aba972039a736066220a8510ad7e8abc61e5c52b"
+          }
+        },
+        {
+          "client_id": "1027509621082-4d01od1lhbllithd3av4v8tb8g8pe1dg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDb9UfMetoE63zrOdpZQuUZldTnnxeHk9A"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1027509621082-4d01od1lhbllithd3av4v8tb8g8pe1dg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1027509621082-fcabgm28q5i0rijf5i28om34t3646j6d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.smartTraveler"
+              }
+            }
+          ]
         }
       }
     }

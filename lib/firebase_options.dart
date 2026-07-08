@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1027509621082',
     projectId: 'smarttraveler-58384',
     storageBucket: 'smarttraveler-58384.firebasestorage.app',
+    androidClientId: '1027509621082-kkq9889c2gbdebkgkfdebibp5ptssiut.apps.googleusercontent.com',
+    iosClientId: '1027509621082-fcabgm28q5i0rijf5i28om34t3646j6d.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartTraveler',
   );
 
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1027509621082',
     projectId: 'smarttraveler-58384',
     storageBucket: 'smarttraveler-58384.firebasestorage.app',
+    androidClientId: '1027509621082-kkq9889c2gbdebkgkfdebibp5ptssiut.apps.googleusercontent.com',
+    iosClientId: '1027509621082-fcabgm28q5i0rijf5i28om34t3646j6d.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartTraveler',
   );
 
@@ -85,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'smarttraveler-58384.firebasestorage.app',
     measurementId: 'G-8PDLSR950N',
   );
+
 }

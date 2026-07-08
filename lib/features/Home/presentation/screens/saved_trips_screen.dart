@@ -178,9 +178,11 @@ class _SavedTripsScreenState extends State<SavedTripsScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    trip.destination,
-                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                  Expanded(
+                                    child: Text(
+                                      trip.destination,
+                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.edit, color: Colors.grey),

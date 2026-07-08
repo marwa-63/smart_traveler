@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:smart_traveler/features/login/login_screen.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +18,9 @@ import 'features/Home/presentation/cubit/trip_cubit.dart';
  
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
     if (kIsWeb) {
     databaseFactory = databaseFactoryFfiWeb;
   }
@@ -43,7 +46,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Smart Traveler',
         theme: AppTheme.lightTheme,
-        home: const HomeScreen(),
+        home: const LoginScreen(),
       ),
     );
   }
