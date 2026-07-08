@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:smart_traveler/features/Home/presentation/screens/Home%20DashboardScreen.dart';
 import 'register_screen.dart';
 // import 'home_screen.dart'; // ← هتعمله بعدين
 
@@ -47,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) {
         _showSuccessSnackBar('you loggid in succesfully✅');
-        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) _showErrorSnackBar(_getErrorMessage(e.code));
