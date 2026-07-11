@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_traveler/features/Home/presentation/widgets/Budget_section.dart';
 import 'package:smart_traveler/features/Home/presentation/widgets/HeaderSection.dart';
 import 'package:smart_traveler/features/Home/presentation/widgets/Quick_action.dart';
-import 'package:smart_traveler/features/Home/presentation/widgets/Recommendation_Section.dart';
-import 'package:smart_traveler/features/Home/presentation/widgets/recent_activity.dart';
+import 'package:smart_traveler/features/Home/presentation/widgets/recommended_trips_section.dart';
 import 'package:smart_traveler/features/Home/presentation/widgets/trip_card.dart';
 
 import 'package:smart_traveler/features/budget/presentation/views/expense_tracker_screen.dart';
@@ -23,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const _HomeContent(),
     const PlannerScreen(),
-    const Center(child: Text("Map Screen Placeholder", style: TextStyle(fontSize: 20))),
     const ExpenseTrackerScreen(),
     const ProfileScreen(),
   ];
@@ -51,7 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: "Planner"),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: "Map"),
           BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: "Budget"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
@@ -77,9 +74,7 @@ class _HomeContent extends StatelessWidget {
           SizedBox(height: 20),
           QuickActions(),
           SizedBox(height: 20),
-          RecommendationsSection(),
-          SizedBox(height: 20),
-          RecentActivitySection(),
+          RecommendedTripsSection(),
         ],
       ),
     );

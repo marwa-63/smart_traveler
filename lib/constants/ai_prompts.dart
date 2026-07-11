@@ -25,6 +25,7 @@ class AIPrompts {
 
 **OUTPUT JSON SCHEMA:**
 {
+  "city": "String city name"
   "tripTitle": "String (A catchy title for the trip)",
   "lifestyleApplied": "String",
   "totalEstimatedCost": Number (Total cost of activities and food in ),

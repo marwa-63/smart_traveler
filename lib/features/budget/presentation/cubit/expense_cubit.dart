@@ -66,6 +66,7 @@ class ExpenseCubit extends Cubit<ExpenseState> {
       final updatedTrip = Trip(
         id: activeTrip.id,
         destination: activeTrip.destination,
+        city: activeTrip.city,
         totalBudget: newBudget,
         startDate: activeTrip.startDate,
         endDate: activeTrip.endDate,

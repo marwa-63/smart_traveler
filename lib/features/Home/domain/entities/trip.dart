@@ -1,6 +1,7 @@
 class Trip {
   final String id;
   final String destination;
+  final String city;
   final double totalBudget;
   final DateTime startDate;
   final DateTime endDate;
@@ -8,6 +9,7 @@ class Trip {
   const Trip({
     required this.id,
     required this.destination,
+    required this.city,
     required this.totalBudget,
     required this.startDate,
     required this.endDate,
@@ -17,6 +19,7 @@ class Trip {
     return {
       'id': id,
       'destination': destination,
+      'city': city,
       'totalBudget': totalBudget,
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
@@ -27,6 +30,7 @@ class Trip {
     return Trip(
       id: map['id'],
       destination: map['destination'],
+      city: map['city'] ?? map['destination'],
       totalBudget: map['totalBudget'],
       startDate: DateTime.parse(map['startDate']),
       endDate: DateTime.parse(map['endDate']),

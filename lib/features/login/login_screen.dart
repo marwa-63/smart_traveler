@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:smart_traveler/features/Home/presentation/screens/Home%20DashboardScreen.dart';
-import 'register_screen.dart';
+import 'package:smart_traveler/features/login/register_screen.dart';
 // import 'home_screen.dart'; // ← هتعمله بعدين
 
 class LoginScreen extends StatefulWidget {
@@ -79,8 +79,8 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.signInWithCredential(credential);
 
       if (mounted) {
-        _showSuccessSnackBar( 'you logged in with google ✅');
-        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+        _showSuccessSnackBar('you logged in with google ✅');
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
       }
     } catch (e) {
       if (mounted) _showErrorSnackBar('log in with google failed');
@@ -102,8 +102,60 @@ class _LoginScreenState extends State<LoginScreen> {
         return 'user-disabled';
       case 'too-many-requests':
         return 'too many requests';
+      case 'missing-email':
+        return 'email is required';
       default:
-        return 'error happend,try again';
+        return 'error happened, try again';
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final resetController = TextEditingController(text: _emailController.text.trim());
+    final shouldSend = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reset Password'),
+        content: TextField(
+          controller: resetController,
+          keyboardType: TextInputType.emailAddress,
+          decoration: const InputDecoration(
+            labelText: 'Email Address',
+            hintText: 'name@example.com',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx, true);
+            },
+            child: const Text('Send Link'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldSend != true) return;
+
+    final email = resetController.text.trim();
+    if (email.isEmpty) {
+      _showErrorSnackBar('Please enter your email address');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      _showSuccessSnackBar('Password reset link sent to $email');
+    } on FirebaseAuthException catch (e) {
+      _showErrorSnackBar(_getErrorMessage(e.code));
+    } catch (_) {
+      _showErrorSnackBar('Failed to send reset email. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -230,7 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: () {}, // TODO: Forgot Password screen
+                      onTap: _forgotPassword,
                       child: const Text(
                         'Forgot password?',
                         style: TextStyle(
@@ -252,8 +304,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     suffix: IconButton(
                       icon: Icon(
                         _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
                         color: kGrey,
                         size: 20,
                       ),

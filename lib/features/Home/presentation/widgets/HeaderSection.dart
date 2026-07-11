@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeTopSection extends StatelessWidget {
   const HomeTopSection({super.key});
@@ -35,33 +36,16 @@ class TopBar extends StatelessWidget {
           child: const Icon(Icons.bolt, color: Colors.white),
         ),
 
-        // Right icons
-        Row(
-          children: [
-            Stack(
-              children: [
-                const Icon(Icons.notifications_none, size: 26),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            const CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.grey,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-          ],
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 4)),
+            ],
+          ),
+          child: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -73,19 +57,25 @@ class HeaderText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Hello, Traveler",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 4),
-        Text(
-          "Where are we going today?",
-          style: TextStyle(color: Colors.grey, fontSize: 14),
-        ),
-      ],
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        final name = snapshot.data?.displayName?.split(' ').first ?? 'Traveler';
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Hello, $name',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Where are we going today?',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+          ],
+        );
+      },
     );
   }
 }

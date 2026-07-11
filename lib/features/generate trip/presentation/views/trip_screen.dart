@@ -145,6 +145,7 @@ class _TripScreenState extends State<TripScreen> {
               final newTrip = Trip(
                 id: tripId,
                 destination: trip.tripTitle,
+                city: trip.city,
                 totalBudget: trip.totalEstimatedCost,
                 startDate: trip.beginDate ?? DateTime.now(),
                 endDate: trip.endDate ?? DateTime.now().add(Duration(days: trip.itinerary.length)),

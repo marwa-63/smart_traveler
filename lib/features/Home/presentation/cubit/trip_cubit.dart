@@ -29,6 +29,7 @@ class TripCubit extends Cubit<TripState> {
     final newTrip = Trip(
       id: "mock_trip_123",
       destination: "Paris Getaway",
+      city: "Paris",
       totalBudget: 3500.0,
       startDate: DateTime.now(),
       endDate: DateTime.now().add(const Duration(days: 7)),

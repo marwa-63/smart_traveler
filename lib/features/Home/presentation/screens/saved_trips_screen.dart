@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/database/database_helper.dart';
 import '../../domain/entities/trip.dart';
+import 'package:smart_traveler/features/generate%20trip/models/trip_model.dart';
+import 'package:smart_traveler/features/generate%20trip/models/day_model.dart';
+import 'package:smart_traveler/features/generate%20trip/models/activity_model.dart';
+import 'package:smart_traveler/features/generate%20trip/presentation/views/trip_screen.dart';
+import 'package:smart_traveler/features/login/auth_gate.dart';
 import '../cubit/trip_cubit.dart';
 
 class SavedTripsScreen extends StatefulWidget {
@@ -68,11 +73,15 @@ class _SavedTripsScreenState extends State<SavedTripsScreen> {
 
     if (confirmed == true) {
       await DatabaseHelper.instance.deleteAllTrips();
-      _loadTrips();
       if (mounted) {
         context.read<TripCubit>().loadActiveTrip(); // Refresh home if active was deleted
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("All trips deleted"), backgroundColor: Colors.red),
+        );
+
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthGate()),
+          (route) => false,
         );
       }
     }
@@ -108,27 +117,29 @@ class _SavedTripsScreenState extends State<SavedTripsScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
+              final currentContext = context;
+              final popContext = ctx;
               final newDest = destController.text;
               final newBudget = double.tryParse(budgetController.text) ?? trip.totalBudget;
 
               final updatedTrip = Trip(
                 id: trip.id,
                 destination: newDest,
+                city: _extractCityName(newDest),
                 totalBudget: newBudget,
                 startDate: trip.startDate,
                 endDate: trip.endDate,
               );
 
               await DatabaseHelper.instance.updateTrip(updatedTrip);
-              if (mounted) {
-                Navigator.pop(ctx);
-                _loadTrips();
-                
-                // If it's the active trip, update Cubit
-                final cubit = context.read<TripCubit>();
-                if (cubit.state.activeTrip?.id == trip.id) {
-                  cubit.setActiveTrip(updatedTrip);
-                }
+              if (!mounted) return;
+              Navigator.pop(popContext);
+              _loadTrips();
+              
+              // If it's the active trip, update Cubit
+              final cubit = context.read<TripCubit>();
+              if (cubit.state.activeTrip?.id == trip.id) {
+                cubit.setActiveTrip(updatedTrip);
               }
             },
             child: const Text("Save"),
@@ -136,6 +147,36 @@ class _SavedTripsScreenState extends State<SavedTripsScreen> {
         ],
       ),
     );
+  }
+
+  void _confirmDeleteTrip(String id) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Delete Trip"),
+        content: const Text("Are you sure you want to delete this saved trip?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text("Delete"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      _deleteTrip(id);
+    }
+  }
+
+  String _extractCityName(String destination) {
+    var seg = destination.split(',').first.trim();
+    final suffixes = ['getaway', 'trip', 'vacation', 'escape', 'tour'];
+    final words = seg.split(RegExp(r'\s+')).where((w) => !suffixes.contains(w.toLowerCase())).toList();
+    final result = words.join(' ').trim();
+    return result.isEmpty ? seg : result;
   }
 
   @override
@@ -170,9 +211,66 @@ class _SavedTripsScreenState extends State<SavedTripsScreen> {
                       child: Card(
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
+                          child: InkWell(
+                            onTap: () async {
+                              // Build TripModel from stored trip + itinerary items
+                              final items = await DatabaseHelper.instance.getItineraryForTrip(trip.id);
+                              // group by day
+                              final Map<int, List> grouped = {};
+                              for (var it in items) {
+                                grouped.putIfAbsent(it.dayNumber, () => []).add(it);
+                              }
+
+                              final itinerary = grouped.keys.toList()..sort();
+                              final List<DayModel> days = itinerary.map((dayNum) {
+                                final its = grouped[dayNum] as List;
+                                final activities = its.map((it) {
+                                  // description stored as "<activityName>\n<description>"
+                                  final desc = it.description ?? '';
+                                  final parts = desc.split('\n');
+                                  final activityName = parts.isNotEmpty ? parts.first : '';
+                                  final description = parts.length > 1 ? parts.sublist(1).join('\n') : '';
+                                  return ActivityModel(
+                                    time: it.time,
+                                    activityName: activityName,
+                                    description: description,
+                                    estimatedCost: it.estimatedCharge,
+                                    searchableLocationName: it.location,
+                                  );
+                                }).toList();
+
+                                return DayModel(day: dayNum, dailyTheme: '', activities: activities, date: null);
+                              }).toList();
+
+                              final tripModel = TripModel(
+                                tripTitle: trip.destination,
+                                lifestyleApplied: '',
+                                totalEstimatedCost: trip.totalBudget,
+                                itinerary: days,
+                                beginDate: trip.startDate,
+                                endDate: trip.endDate,
+                              city: trip.city,
+                              );
+
+                              // Navigate to TripScreen to display full generated UI with photos
+                              final res = await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => TripScreen(response: tripModel)),
+                              );
+                              if (!mounted) return;
+
+                              // If TripScreen returned activation, handle
+                              if (res is Map && res['activate'] == true && res['trip'] is Trip) {
+                                final t = res['trip'] as Trip;
+                                context.read<TripCubit>().setActiveTrip(t);
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Trip activated!"), backgroundColor: Colors.green));
+                                Navigator.pop(context);
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
@@ -184,9 +282,18 @@ class _SavedTripsScreenState extends State<SavedTripsScreen> {
                                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                     ),
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.grey),
-                                    onPressed: () => _showRefineDialog(trip),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.grey),
+                                        onPressed: () => _showRefineDialog(trip),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                        onPressed: () => _confirmDeleteTrip(trip.id),
+                                      ),
+                                    ],
                                   )
                                 ],
                               ),
@@ -218,7 +325,8 @@ class _SavedTripsScreenState extends State<SavedTripsScreen> {
                           ),
                         ),
                       ),
-                    );
+                      )
+                      );
                   },
                 ),
       persistentFooterButtons: _trips.isNotEmpty ? [

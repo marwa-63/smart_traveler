@@ -3,6 +3,7 @@ import 'package:smart_traveler/features/generate%20trip/models/day_model.dart';
 
 class TripModel {
 
+  final String city;
   final String tripTitle;
   final String lifestyleApplied;
   final double totalEstimatedCost;
@@ -17,7 +18,7 @@ class TripModel {
     required this.totalEstimatedCost,
     required this.itinerary,
     required this.beginDate,
-    required this.endDate,
+    required this.endDate, required this.city,
   });
 
   factory TripModel.fromJson(Map<String, dynamic> json ,{required DateTime startDate , required DateTime endDate}) {
@@ -39,7 +40,8 @@ class TripModel {
       totalEstimatedCost: (json['totalEstimatedCost'] ?? 0).toDouble(),
       itinerary: parsedItinerary,
       beginDate: startDate,
-      endDate: endDate,
+      endDate: endDate, 
+      city:json['city'],
     );
   }
 }

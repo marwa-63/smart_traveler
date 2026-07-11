@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:smart_traveler/features/generate%20trip/services/photo_services.dart';
 import '../cubit/trip_cubit.dart';
 import '../cubit/trip_state.dart';
 
@@ -44,16 +45,31 @@ class TripCard extends StatelessWidget {
         final progress = (currentDay / totalDays).clamp(0.0, 1.0);
         final isCompleted = currentDay > totalDays;
 
+        final cityName = trip.city.isNotEmpty ? trip.city : _extractCityName(trip.destination);
+
         return ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: Stack(
             children: [
-              Image.network(
-                "https://images.unsplash.com/photo-1502602898657-3e91760cbb34",
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(height: 200, color: Colors.blueGrey),
+              FutureBuilder<String>(
+                future: PhotoServices().getPhoto(placeName: cityName),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Container(height: 200, width: double.infinity, color: Colors.blueGrey);
+                  }
+
+                  if (snapshot.hasError || snapshot.data == null) {
+                    return Container(height: 200, width: double.infinity, color: Colors.blueGrey);
+                  }
+
+                  return Image.network(
+                    snapshot.data!,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(height: 200, color: Colors.blueGrey),
+                  );
+                },
               ),
 
               // Overlay
@@ -116,7 +132,7 @@ class TripCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      trip.destination,
+                      cityName,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22,
@@ -180,5 +196,20 @@ class TripCard extends StatelessWidget {
   String _formatDateShort(DateTime date) {
     const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
     return "${months[date.month - 1]} ${date.day}";
+  }
+
+  String _extractCityName(String destination) {
+    // If destination contains a comma, take the first segment (e.g., "Paris, France")
+    var seg = destination.split(',').first.trim();
+
+    // Remove common suffix words like "Getaway", "Trip", "Vacation"
+    final suffixes = ['getaway', 'trip', 'vacation', 'escape', 'tour'];
+    final words = seg.split(RegExp(r'\s+'))
+        .where((w) => !suffixes.contains(w.toLowerCase()))
+        .toList();
+
+    final result = words.join(' ').trim();
+    if (result.isEmpty) return seg.split(' ').first;
+    return result;
   }
 }

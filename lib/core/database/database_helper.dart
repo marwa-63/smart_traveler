@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -42,6 +42,11 @@ class DatabaseHelper {
         )
       ''');
     }
+
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE trips ADD COLUMN city TEXT');
+      await db.execute('UPDATE trips SET city = destination WHERE city IS NULL OR city = ""');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -54,6 +59,7 @@ class DatabaseHelper {
       CREATE TABLE trips (
         id $idType,
         destination $textType,
+        city $textType,
         totalBudget $realType,
         startDate $textType,
         endDate $textType
